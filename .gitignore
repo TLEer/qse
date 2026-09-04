@@ -1,0 +1,32 @@
+# --- Build artifacts ---
+/build/
+/build_bin/
+compile_commands.json
+*.o
+*.a
+
+# --- Market data: raw zips + curated CSVs are regenerable via
+#     data/pipeline/download_um.sh (the pipeline script itself is tracked) ---
+/data/raw/
+/data/curated/
+
+# --- Secrets & local machine config ---
+/deepseek-apikey
+/.claude/
+/.vscode/
+/.clangd
+
+# --- Runtime state & telemetry (top-level reports/*.json evidence is tracked) ---
+/reports/logs/
+/reports/live/
+/evaluation/trials.json
+
+# --- Python ---
+__pycache__/
+*.pyc
+
+# --- Personal / scratch, not part of the system ---
+/test.py
+/cv.tex
+/docs/
+/vtr.zip
