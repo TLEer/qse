@@ -1,0 +1,163 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "mode": "xsec",
+  "hypothesis": {
+    "name": "funding_adjusted_momentum_168h",
+    "economic_rationale": "Assets with strong recent price returns not accompanied by high funding rates indicate organic momentum without crowding, signaling further upside. Conversely, lagging returns with high funding suggest long-side pressure that may unwind, predicting further downside. This ranks the difference between log-return and mean funding rate, a non-linear combination of momentum and carry.",
+    "formula": "xs_zscore(ts_ret(close, 168) - ts_mean(funding, 168))",
+    "lookback_bars": 168,
+    "expected_turnover": "low",
+    "predicted_failure_modes": [
+      "Sudden risk-off events that break momentum and funding relationships across all assets",
+      "Exchange-driven disruptions in funding rates causing outliers",
+      "Mean-reversion regimes where high funding and positive momentum become reversal signals"
+    ]
+  },
+  "train_batch": [
+    {
+      "factor": "funding_adjusted_momentum_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.00467,
+      "ic_std": 0.281923,
+      "ic_tstat": -1.3258,
+      "ic_ir": -0.016566,
+      "ann_sharpe_net": 0.5089,
+      "total_return_net": 0.059372,
+      "max_drawdown": 0.091292,
+      "avg_turnover": 0.019165,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.001065,
+      "ic_std": 0.210425,
+      "ic_tstat": -0.4052,
+      "ic_ir": -0.005063,
+      "ann_sharpe_net": 1.7495,
+      "total_return_net": 0.182363,
+      "max_drawdown": 0.099649,
+      "avg_turnover": 0.008333,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_16h",
+      "n_epochs": 6557,
+      "mean_ic": 0.002965,
+      "ic_std": 0.209377,
+      "ic_tstat": 1.1467,
+      "ic_ir": 0.014161,
+      "ann_sharpe_net": 1.2895,
+      "total_return_net": 0.146758,
+      "max_drawdown": 0.080902,
+      "avg_turnover": 0.033324,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_72h",
+      "n_epochs": 6501,
+      "mean_ic": 3.2e-05,
+      "ic_std": 0.210265,
+      "ic_tstat": 0.0124,
+      "ic_ir": 0.000154,
+      "ann_sharpe_net": 1.6883,
+      "total_return_net": 0.187659,
+      "max_drawdown": 0.102623,
+      "avg_turnover": 0.015074,
+      "deterministic": true
+    },
+    {
+      "factor": "low_vol_168h",
+      "n_epochs": 6404,
+      "mean_ic": 0.030675,
+      "ic_std": 0.38073,
+      "ic_tstat": 6.4474,
+      "ic_ir": 0.080568,
+      "ann_sharpe_net": 1.2808,
+      "total_return_net": 0.231849,
+      "max_drawdown": 0.149561,
+      "avg_turnover": 0.005718,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.028234,
+      "ic_std": 0.277592,
+      "ic_tstat": 8.2309,
+      "ic_ir": 0.101709,
+      "ann_sharpe_net": -2.1314,
+      "total_return_net": -0.279517,
+      "max_drawdown": 0.31209,
+      "avg_turnover": 0.056431,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.021749,
+      "ic_std": 0.279967,
+      "ic_tstat": 6.275,
+      "ic_ir": 0.077683,
+      "ann_sharpe_net": 0.0924,
+      "total_return_net": -0.000553,
+      "max_drawdown": 0.123456,
+      "avg_turnover": 0.039953,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_72h",
+      "n_epochs": 6501,
+      "mean_ic": 0.018332,
+      "ic_std": 0.280882,
+      "ic_tstat": 5.2624,
+      "ic_ir": 0.065267,
+      "ann_sharpe_net": -0.8635,
+      "total_return_net": -0.130306,
+      "max_drawdown": 0.214878,
+      "avg_turnover": 0.031201,
+      "deterministic": true
+    },
+    {
+      "factor": "volume_shock",
+      "n_epochs": 6405,
+      "mean_ic": 0.008392,
+      "ic_std": 0.219647,
+      "ic_tstat": 3.0576,
+      "ic_ir": 0.038205,
+      "ann_sharpe_net": -2.3563,
+      "total_return_net": -0.245915,
+      "max_drawdown": 0.263159,
+      "avg_turnover": 0.040693,
+      "deterministic": true
+    }
+  ],
+  "train_fitness": {
+    "window": "train (in-sample)",
+    "n_trials_global": null,
+    "mean_ic": -0.00467,
+    "adjusted_ic": -0.00467,
+    "penalty": 0.0,
+    "ic_tstat": -1.3258,
+    "ann_sharpe_net": 0.5089,
+    "total_return_net": 0.059372,
+    "max_drawdown": 0.091292,
+    "avg_turnover": 0.019165,
+    "n_epochs": 6405
+  },
+  "critique": {
+    "verdict": "reject",
+    "statistical_flaws": [
+      "IC t-stat is -1.33, far below 2, indicating no statistically significant predictive edge.",
+      "Mean IC is negative (-0.0047) and driven by a heavy left tail: the 15 worst per-epoch ICs all exceed -0.73, with several extreme events at -0.84, -0.82, -0.79, etc., suggesting the factor's signal is dominated by occasional large losses rather than a consistent broad edge.",
+      "Despite a modest net Sharpe of 0.51, the factor's rank IC is negative, implying that the PnL may come from risk premiums or other factors unrelated to the claimed cross-sectional ranking ability; the inconsistency between IC and Sharpe warrants skepticism."
+    ],
+    "logical_flaws": [
+      "The hypothesis posits that high return minus low funding signals organic momentum and predicts further upside, but the negative IC indicates the opposite: assets with high rank (strong momentum, low funding) tend to underperform. This directly contradicts the economic rationale and suggests the factor is capturing mean-reversion instead of momentum.",
+      "The list of worst IC epochs (e.g., 2025-08-02, 2025-08-10, 2026-01-24, 2026-01-25, 2025-12-19) cluster around periods likely characterized by risk-off or mean-reversion, which are listed as failure modes. The factor thus fails precisely in the regimes it was designed to avoid, undermining its reliability.",
+      "The baseline funding_carry_168h achieves a Sharpe of 1.75 with a near-zero IC, indicating that the pure carry component can generate PnL without cross-sectional IC; the new factor's addition of momentum degrades both IC and Sharpe, suggesting the momentum overlay is not adding value and may be harmful."
+    ],
+    "revision_directive": "Given the negative IC, consider inverting the signal: test xs_zscore(ts_mean(funding, 168) - ts_ret(close, 168)). Alternatively, examine whether the relationship is non-linear (e.g., only extreme funding dislocations matter) or if the 168h window conflates different regimes. Re-run backtest with reversed sign and check if mean IC becomes positive and statistically significant. Also, ensure that the PnL attribution aligns with the ranking edge, not from drift."
+  }
+}

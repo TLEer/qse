@@ -1,0 +1,163 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "mode": "xsec",
+  "hypothesis": {
+    "name": "funding_price_divergence_168h",
+    "economic_rationale": "Assets where the 168-hour price return significantly exceeds the average funding rate over the same window are exhibiting positive momentum not yet fully priced into the cost of leverage, suggesting further upward pressure. Conversely, high funding rates combined with weak or negative returns indicate overcrowded longs that are likely to unwind, leading to underperformance. Ranking by this divergence should positively predict next-hour returns.",
+    "formula": "xs_zscore(ts_ret(close, 168) - ts_mean(funding, 168))",
+    "lookback_bars": 168,
+    "expected_turnover": "medium",
+    "predicted_failure_modes": [
+      "sharp market-wide deleveraging events causing funding and price dynamics to decouple, erasing ranking spread",
+      "low volume periods where funding rates become stale and the signal decays into noise",
+      "strong trend accelerations where high funding and high returns coexist without imminent unwind (momentum-dominant regime)"
+    ]
+  },
+  "train_batch": [
+    {
+      "factor": "funding_carry_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.001065,
+      "ic_std": 0.210425,
+      "ic_tstat": -0.4052,
+      "ic_ir": -0.005063,
+      "ann_sharpe_net": 1.7495,
+      "total_return_net": 0.182363,
+      "max_drawdown": 0.099649,
+      "avg_turnover": 0.008333,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_16h",
+      "n_epochs": 6557,
+      "mean_ic": 0.002965,
+      "ic_std": 0.209377,
+      "ic_tstat": 1.1467,
+      "ic_ir": 0.014161,
+      "ann_sharpe_net": 1.2895,
+      "total_return_net": 0.146758,
+      "max_drawdown": 0.080902,
+      "avg_turnover": 0.033324,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_72h",
+      "n_epochs": 6501,
+      "mean_ic": 3.2e-05,
+      "ic_std": 0.210265,
+      "ic_tstat": 0.0124,
+      "ic_ir": 0.000154,
+      "ann_sharpe_net": 1.6883,
+      "total_return_net": 0.187659,
+      "max_drawdown": 0.102623,
+      "avg_turnover": 0.015074,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_price_divergence_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.00467,
+      "ic_std": 0.281923,
+      "ic_tstat": -1.3258,
+      "ic_ir": -0.016566,
+      "ann_sharpe_net": 0.5089,
+      "total_return_net": 0.059372,
+      "max_drawdown": 0.091292,
+      "avg_turnover": 0.019165,
+      "deterministic": true
+    },
+    {
+      "factor": "low_vol_168h",
+      "n_epochs": 6404,
+      "mean_ic": 0.030675,
+      "ic_std": 0.38073,
+      "ic_tstat": 6.4474,
+      "ic_ir": 0.080568,
+      "ann_sharpe_net": 1.2808,
+      "total_return_net": 0.231849,
+      "max_drawdown": 0.149561,
+      "avg_turnover": 0.005718,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.028234,
+      "ic_std": 0.277592,
+      "ic_tstat": 8.2309,
+      "ic_ir": 0.101709,
+      "ann_sharpe_net": -2.1314,
+      "total_return_net": -0.279517,
+      "max_drawdown": 0.31209,
+      "avg_turnover": 0.056431,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.021749,
+      "ic_std": 0.279967,
+      "ic_tstat": 6.275,
+      "ic_ir": 0.077683,
+      "ann_sharpe_net": 0.0924,
+      "total_return_net": -0.000553,
+      "max_drawdown": 0.123456,
+      "avg_turnover": 0.039953,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_72h",
+      "n_epochs": 6501,
+      "mean_ic": 0.018332,
+      "ic_std": 0.280882,
+      "ic_tstat": 5.2624,
+      "ic_ir": 0.065267,
+      "ann_sharpe_net": -0.8635,
+      "total_return_net": -0.130306,
+      "max_drawdown": 0.214878,
+      "avg_turnover": 0.031201,
+      "deterministic": true
+    },
+    {
+      "factor": "volume_shock",
+      "n_epochs": 6405,
+      "mean_ic": 0.008392,
+      "ic_std": 0.219647,
+      "ic_tstat": 3.0576,
+      "ic_ir": 0.038205,
+      "ann_sharpe_net": -2.3563,
+      "total_return_net": -0.245915,
+      "max_drawdown": 0.263159,
+      "avg_turnover": 0.040693,
+      "deterministic": true
+    }
+  ],
+  "train_fitness": {
+    "window": "train (in-sample)",
+    "n_trials_global": null,
+    "mean_ic": -0.00467,
+    "adjusted_ic": -0.00467,
+    "penalty": 0.0,
+    "ic_tstat": -1.3258,
+    "ann_sharpe_net": 0.5089,
+    "total_return_net": 0.059372,
+    "max_drawdown": 0.091292,
+    "avg_turnover": 0.019165,
+    "n_epochs": 6405
+  },
+  "critique": {
+    "verdict": "reject",
+    "statistical_flaws": [
+      "IC t-stat is -1.33, far below the 2.0 threshold, indicating the observed negative mean rank IC is not statistically distinguishable from zero.",
+      "The mean rank IC is negative (-0.00467), but the worst per-epoch ICs are massive (e.g., -0.838, -0.819), suggesting the negative average is driven by a handful of extreme underperformance events rather than a broad, consistent edge.",
+      "The factor\u2019s net Sharpe (0.51) is positive while the IC is negative, a mismatch that suggests the PnL may be driven by volatility scaling or other portfolio construction artifacts rather than the intended ranking power."
+    ],
+    "logical_flaws": [
+      "The hypothesis explicitly claims the divergence \u2018should positively predict next-hour returns\u2019, yet the factor produces a consistently negative mean IC over 6405 epochs, directly contradicting the stated rationale.",
+      "The factor is a minor perturbation of the funding_carry_168h baseline (which already had a negative IC of -0.00107), adding a price return component that only deepens the negative IC and weakens net Sharpe from 1.75 to 0.51, indicating that the revision did not capture a genuine new effect but instead degraded performance.",
+      "The failure modes (deleveraging events, stale funding) are invoked, but the negative IC is pervasive, not limited to those events; the factor appears to systematically capture mean-reversion rather than momentum, suggesting the economic logic is inverted."
+    ],
+    "revision_directive": "The factor is anti-predictive: high divergence (positive return minus funding) actually underperforms. Proposer should first confirm whether the ranking sign should be reversed \u2014 perhaps high funding already prices in momentum, making the residual a contrarian signal. Test the simple negation: `-xs_zscore(ts_ret(close, 168) - ts_mean(funding, 168))`. Also examine how the factor\u2019s IC evolves across different market regimes (e.g., bull vs bear), as the vanilla signal may only work under specific conditions. The current result does not pass the promotion gate on any criterion."
+  }
+}

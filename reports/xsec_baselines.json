@@ -1,0 +1,10 @@
+[
+  {"factor": "funding_carry_168h", "n_epochs": 8589, "mean_ic": 0.000026, "ic_std": 0.207631, "ic_tstat": 0.0114, "ic_ir": 0.000123, "ann_sharpe_net": 2.7349, "total_return_net": 0.442949, "max_drawdown": 0.099649, "avg_turnover": 0.008397, "deterministic": true},
+  {"factor": "funding_carry_16h", "n_epochs": 8741, "mean_ic": 0.000778, "ic_std": 0.206921, "ic_tstat": 0.3513, "ic_ir": 0.003758, "ann_sharpe_net": 0.5210, "total_return_net": 0.069972, "max_drawdown": 0.127115, "avg_turnover": 0.033943, "deterministic": true},
+  {"factor": "funding_carry_72h", "n_epochs": 8685, "mean_ic": -0.000105, "ic_std": 0.206714, "ic_tstat": -0.0475, "ic_ir": -0.000510, "ann_sharpe_net": 1.7195, "total_return_net": 0.267996, "max_drawdown": 0.102623, "avg_turnover": 0.015111, "deterministic": true},
+  {"factor": "low_vol_168h", "n_epochs": 8588, "mean_ic": 0.027455, "ic_std": 0.384729, "ic_tstat": 6.6132, "ic_ir": 0.071362, "ann_sharpe_net": 0.3257, "total_return_net": 0.050781, "max_drawdown": 0.208089, "avg_turnover": 0.005297, "deterministic": true},
+  {"factor": "reversal_24h", "n_epochs": 8733, "mean_ic": 0.026163, "ic_std": 0.276105, "ic_tstat": 8.8551, "ic_ir": 0.094757, "ann_sharpe_net": -3.7425, "total_return_net": -0.538767, "max_drawdown": 0.560581, "avg_turnover": 0.055433, "deterministic": true},
+  {"factor": "reversal_48h", "n_epochs": 8709, "mean_ic": 0.016551, "ic_std": 0.275885, "ic_tstat": 5.5985, "ic_ir": 0.059991, "ann_sharpe_net": -2.1956, "total_return_net": -0.362417, "max_drawdown": 0.438150, "avg_turnover": 0.038604, "deterministic": true},
+  {"factor": "reversal_72h", "n_epochs": 8685, "mean_ic": 0.015096, "ic_std": 0.276877, "ic_tstat": 5.0812, "ic_ir": 0.054523, "ann_sharpe_net": -2.2532, "total_return_net": -0.373539, "max_drawdown": 0.440732, "avg_turnover": 0.030170, "deterministic": true},
+  {"factor": "volume_shock", "n_epochs": 8589, "mean_ic": 0.005323, "ic_std": 0.220077, "ic_tstat": 2.2414, "ic_ir": 0.024185, "ann_sharpe_net": -2.9264, "total_return_net": -0.382232, "max_drawdown": 0.414789, "avg_turnover": 0.040780, "deterministic": true}
+]

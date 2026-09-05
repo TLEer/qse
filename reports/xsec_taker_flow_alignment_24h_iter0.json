@@ -1,0 +1,164 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "mode": "xsec",
+  "hypothesis": {
+    "name": "taker_flow_alignment_24h",
+    "economic_rationale": "Assets with high correlation between hourly returns and taker buy ratio over the past 24 hours indicate sustained informed buying pressure, likely to persist in the near term. Low correlation suggests that price moves are not supported by order flow, making them vulnerable to reversal. This signal captures the cross-sectional difference in trend quality.",
+    "formula": "xs_rank(ts_corr(ts_ret(close, 1), taker_buy_ratio, 24))",
+    "lookback_bars": 24,
+    "expected_turnover": "medium",
+    "predicted_failure_modes": [
+      "High volatility spikes causing spurious correlation",
+      "Low liquidity pairs where taker_buy_ratio is noisy",
+      "Market-wide trend reversals where alignment breaks down"
+    ]
+  },
+  "train_batch": [
+    {
+      "factor": "funding_carry_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.001065,
+      "ic_std": 0.210425,
+      "ic_tstat": -0.4052,
+      "ic_ir": -0.005063,
+      "ann_sharpe_net": 1.7495,
+      "total_return_net": 0.182363,
+      "max_drawdown": 0.099649,
+      "avg_turnover": 0.008333,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_16h",
+      "n_epochs": 6557,
+      "mean_ic": 0.002965,
+      "ic_std": 0.209377,
+      "ic_tstat": 1.1467,
+      "ic_ir": 0.014161,
+      "ann_sharpe_net": 1.2895,
+      "total_return_net": 0.146758,
+      "max_drawdown": 0.080902,
+      "avg_turnover": 0.033324,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_72h",
+      "n_epochs": 6501,
+      "mean_ic": 3.2e-05,
+      "ic_std": 0.210265,
+      "ic_tstat": 0.0124,
+      "ic_ir": 0.000154,
+      "ann_sharpe_net": 1.6883,
+      "total_return_net": 0.187659,
+      "max_drawdown": 0.102623,
+      "avg_turnover": 0.015074,
+      "deterministic": true
+    },
+    {
+      "factor": "low_vol_168h",
+      "n_epochs": 6404,
+      "mean_ic": 0.030675,
+      "ic_std": 0.38073,
+      "ic_tstat": 6.4474,
+      "ic_ir": 0.080568,
+      "ann_sharpe_net": 1.2808,
+      "total_return_net": 0.231849,
+      "max_drawdown": 0.149561,
+      "avg_turnover": 0.005718,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.028234,
+      "ic_std": 0.277592,
+      "ic_tstat": 8.2309,
+      "ic_ir": 0.101709,
+      "ann_sharpe_net": -2.1314,
+      "total_return_net": -0.279517,
+      "max_drawdown": 0.31209,
+      "avg_turnover": 0.056431,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.021749,
+      "ic_std": 0.279967,
+      "ic_tstat": 6.275,
+      "ic_ir": 0.077683,
+      "ann_sharpe_net": 0.0924,
+      "total_return_net": -0.000553,
+      "max_drawdown": 0.123456,
+      "avg_turnover": 0.039953,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_72h",
+      "n_epochs": 6501,
+      "mean_ic": 0.018332,
+      "ic_std": 0.280882,
+      "ic_tstat": 5.2624,
+      "ic_ir": 0.065267,
+      "ann_sharpe_net": -0.8635,
+      "total_return_net": -0.130306,
+      "max_drawdown": 0.214878,
+      "avg_turnover": 0.031201,
+      "deterministic": true
+    },
+    {
+      "factor": "taker_flow_alignment_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.003473,
+      "ic_std": 0.19804,
+      "ic_tstat": 1.4191,
+      "ic_ir": 0.017535,
+      "ann_sharpe_net": -2.0442,
+      "total_return_net": -0.200803,
+      "max_drawdown": 0.210959,
+      "avg_turnover": 0.044978,
+      "deterministic": true
+    },
+    {
+      "factor": "volume_shock",
+      "n_epochs": 6405,
+      "mean_ic": 0.008392,
+      "ic_std": 0.219647,
+      "ic_tstat": 3.0576,
+      "ic_ir": 0.038205,
+      "ann_sharpe_net": -2.3563,
+      "total_return_net": -0.245915,
+      "max_drawdown": 0.263159,
+      "avg_turnover": 0.040693,
+      "deterministic": true
+    }
+  ],
+  "train_fitness": {
+    "window": "train (in-sample)",
+    "n_trials_global": null,
+    "mean_ic": 0.003473,
+    "adjusted_ic": 0.003473,
+    "penalty": 0.0,
+    "ic_tstat": 1.4191,
+    "ann_sharpe_net": -2.0442,
+    "total_return_net": -0.200803,
+    "max_drawdown": 0.210959,
+    "avg_turnover": 0.044978,
+    "n_epochs": 6549
+  },
+  "critique": {
+    "verdict": "reject",
+    "statistical_flaws": [
+      "IC t-stat is 1.419 (less than 2), so the mean IC is not statistically significant in-sample.",
+      "Mean rank IC is only 0.0035, far below the 0.03 threshold required for promotion, indicating minimal predictive power.",
+      "Net annualized Sharpe is -2.04, showing that even a slightly positive raw IC is entirely eroded by transaction costs, given an average turnover of 0.045.",
+      "The per-epoch IC distribution is heavily skewed negative: the worst-15 ICs range from -0.55 to -0.68, while the mean is nearly zero. This suggests the small positive mean may come from a few outlier positive epochs rather than a broad, consistent edge."
+    ],
+    "logical_flaws": [
+      "The hypothesis predicts that high return-taker buy ratio correlation should persist and outperform, but the factor produces a net return of -20% and a large drawdown, directly contradicting the rationale.",
+      "The predicted failure modes (volatility spikes, low liquidity, trend reversals) do not explain the uniformly negative performance; the factor fails across regimes, not just in specific adverse conditions.",
+      "The 24-bar correlation window likely generates noisy signals. A short correlation horizon may capture spurious relationships that reverse quickly, rather than the sustained informed buying pressure described in the economic rationale."
+    ],
+    "revision_directive": "This factor is not salvageable. The IC is near noise, net Sharpe is deeply negative, and the performance contradicts the stated rationale. Do not iterate on a 24-bar taker-flow correlation; consider a fundamentally different approach to order flow analysis, or a much longer, smoothed alignment metric. Abandon this specific formula."
+  }
+}

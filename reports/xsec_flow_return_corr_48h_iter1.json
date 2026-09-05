@@ -1,0 +1,163 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "mode": "xsec",
+  "hypothesis": {
+    "name": "flow_return_corr_48h",
+    "economic_rationale": "Assets whose recent hourly price changes are positively correlated with the proportion of aggressive taker buy volume indicate persistent informed directional flow. High correlation suggests the asset is being accumulated/distributed with conviction, and that trend is likely to continue over the next hour. Low correlation signals mixed or noise-driven price action, likely to revert. The cross-sectional spread in this correlation thus predicts the spread in next-hour returns.",
+    "formula": "xs_rank(ts_corr(ts_ret(close, 1), taker_buy_ratio, 48))",
+    "lookback_bars": 48,
+    "expected_turnover": "medium",
+    "predicted_failure_modes": [
+      "Periods of abnormally low volume causing noisy taker buy ratios",
+      "Sharp market-wide reversals that flip correlations quickly",
+      "Sideways or range-bound markets where no clear directional flow exists"
+    ]
+  },
+  "train_batch": [
+    {
+      "factor": "flow_return_corr_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.004417,
+      "ic_std": 0.198437,
+      "ic_tstat": 1.7979,
+      "ic_ir": 0.022258,
+      "ann_sharpe_net": 0.7359,
+      "total_return_net": 0.078203,
+      "max_drawdown": 0.11115,
+      "avg_turnover": 0.028423,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.001065,
+      "ic_std": 0.210425,
+      "ic_tstat": -0.4052,
+      "ic_ir": -0.005063,
+      "ann_sharpe_net": 1.7495,
+      "total_return_net": 0.182363,
+      "max_drawdown": 0.099649,
+      "avg_turnover": 0.008333,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_16h",
+      "n_epochs": 6557,
+      "mean_ic": 0.002965,
+      "ic_std": 0.209377,
+      "ic_tstat": 1.1467,
+      "ic_ir": 0.014161,
+      "ann_sharpe_net": 1.2895,
+      "total_return_net": 0.146758,
+      "max_drawdown": 0.080902,
+      "avg_turnover": 0.033324,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_72h",
+      "n_epochs": 6501,
+      "mean_ic": 3.2e-05,
+      "ic_std": 0.210265,
+      "ic_tstat": 0.0124,
+      "ic_ir": 0.000154,
+      "ann_sharpe_net": 1.6883,
+      "total_return_net": 0.187659,
+      "max_drawdown": 0.102623,
+      "avg_turnover": 0.015074,
+      "deterministic": true
+    },
+    {
+      "factor": "low_vol_168h",
+      "n_epochs": 6404,
+      "mean_ic": 0.030675,
+      "ic_std": 0.38073,
+      "ic_tstat": 6.4474,
+      "ic_ir": 0.080568,
+      "ann_sharpe_net": 1.2808,
+      "total_return_net": 0.231849,
+      "max_drawdown": 0.149561,
+      "avg_turnover": 0.005718,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.028234,
+      "ic_std": 0.277592,
+      "ic_tstat": 8.2309,
+      "ic_ir": 0.101709,
+      "ann_sharpe_net": -2.1314,
+      "total_return_net": -0.279517,
+      "max_drawdown": 0.31209,
+      "avg_turnover": 0.056431,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.021749,
+      "ic_std": 0.279967,
+      "ic_tstat": 6.275,
+      "ic_ir": 0.077683,
+      "ann_sharpe_net": 0.0924,
+      "total_return_net": -0.000553,
+      "max_drawdown": 0.123456,
+      "avg_turnover": 0.039953,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_72h",
+      "n_epochs": 6501,
+      "mean_ic": 0.018332,
+      "ic_std": 0.280882,
+      "ic_tstat": 5.2624,
+      "ic_ir": 0.065267,
+      "ann_sharpe_net": -0.8635,
+      "total_return_net": -0.130306,
+      "max_drawdown": 0.214878,
+      "avg_turnover": 0.031201,
+      "deterministic": true
+    },
+    {
+      "factor": "volume_shock",
+      "n_epochs": 6405,
+      "mean_ic": 0.008392,
+      "ic_std": 0.219647,
+      "ic_tstat": 3.0576,
+      "ic_ir": 0.038205,
+      "ann_sharpe_net": -2.3563,
+      "total_return_net": -0.245915,
+      "max_drawdown": 0.263159,
+      "avg_turnover": 0.040693,
+      "deterministic": true
+    }
+  ],
+  "train_fitness": {
+    "window": "train (in-sample)",
+    "n_trials_global": null,
+    "mean_ic": 0.004417,
+    "adjusted_ic": 0.004417,
+    "penalty": 0.0,
+    "ic_tstat": 1.7979,
+    "ann_sharpe_net": 0.7359,
+    "total_return_net": 0.078203,
+    "max_drawdown": 0.11115,
+    "avg_turnover": 0.028423,
+    "n_epochs": 6525
+  },
+  "critique": {
+    "verdict": "reject",
+    "statistical_flaws": [
+      "IC t-stat only 1.80 (<2), meaning the mean rank IC is not significantly different from zero.",
+      "IC IR (IC / IC_std) is 0.022, so the signal is extremely weak relative to noise.",
+      "Worst\u201115 per\u2011epoch ICs are all below \u20130.53, with several around \u20130.75, indicating the edge is narrow and driven by a few large positive ICs rather than a broad shallow edge.",
+      "Mean IC of 0.0044 is far from the holdout promotion gate of >0.03; it is implausible the factor would clear that threshold after deflation."
+    ],
+    "logical_flaws": [
+      "The economic rationale predicts persistent directional flow, but the near\u2011zero IC suggests the correlation captures very little of the cross\u2011sectional return spread.",
+      "The predicted failure modes (low\u2011volume noise, sharp reversals, sideways markets) are plausible, yet the factor shows extreme negative ICs in 15 recent epochs, suggesting it breaks down systematically rather than only in anticipated failure regimes."
+    ],
+    "revision_directive": "The signal strength is too weak to promote. The proposer should first demonstrate a statistically significant IC (t\u2011stat > 2) on in\u2011sample data. Investigate whether the factor\u2019s losses cluster in the stated failure modes (e.g., on 2025\u201110\u201120 06:00 and 2025\u201112\u201103 15:00, were there abnormally low volume or sharp reversals?). Consider filtering out extremely low\u2011volume periods or extending the correlation window to reduce noise. Without a substantial improvement in mean IC, the factor does not merit a holdout trial."
+  }
+}

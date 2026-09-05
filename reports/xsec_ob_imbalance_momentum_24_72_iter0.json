@@ -1,0 +1,164 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "mode": "xsec",
+  "hypothesis": {
+    "name": "ob_imbalance_momentum_24_72",
+    "economic_rationale": "Order flow imbalance (taker buy ratio) reflects aggressive demand versus supply in real time. A short-term moving average that deviates above its medium-term moving average signals a recent surge in buying pressure that hasn't yet fully propagated into price due to execution lag in perpetuals markets. Cross-sectionally, assets with the strongest net buying momentum tend to attract more attention and trend followers, causing superior next-hour returns relative to those with deteriorating order flow. Unlike pure volume or return signals, this isolates the aggressor side of executed trades, offering a less noise-dependent view of emerging demand.",
+    "formula": "xs_zscore(ts_mean(taker_buy_ratio, 24) - ts_mean(taker_buy_ratio, 72))",
+    "lookback_bars": 72,
+    "expected_turnover": "medium",
+    "predicted_failure_modes": [
+      "Extreme funding rates causing leveraged unwinds that override order flow signals",
+      "Low volatility, mean-reverting markets where aggressive buying is quickly faded",
+      "Slippage during high volatility events causing execution cost to overwhelm signal"
+    ]
+  },
+  "train_batch": [
+    {
+      "factor": "funding_carry_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.001065,
+      "ic_std": 0.210425,
+      "ic_tstat": -0.4052,
+      "ic_ir": -0.005063,
+      "ann_sharpe_net": 1.7495,
+      "total_return_net": 0.182363,
+      "max_drawdown": 0.099649,
+      "avg_turnover": 0.008333,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_16h",
+      "n_epochs": 6557,
+      "mean_ic": 0.002965,
+      "ic_std": 0.209377,
+      "ic_tstat": 1.1467,
+      "ic_ir": 0.014161,
+      "ann_sharpe_net": 1.2895,
+      "total_return_net": 0.146758,
+      "max_drawdown": 0.080902,
+      "avg_turnover": 0.033324,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_72h",
+      "n_epochs": 6501,
+      "mean_ic": 3.2e-05,
+      "ic_std": 0.210265,
+      "ic_tstat": 0.0124,
+      "ic_ir": 0.000154,
+      "ann_sharpe_net": 1.6883,
+      "total_return_net": 0.187659,
+      "max_drawdown": 0.102623,
+      "avg_turnover": 0.015074,
+      "deterministic": true
+    },
+    {
+      "factor": "low_vol_168h",
+      "n_epochs": 6404,
+      "mean_ic": 0.030675,
+      "ic_std": 0.38073,
+      "ic_tstat": 6.4474,
+      "ic_ir": 0.080568,
+      "ann_sharpe_net": 1.2808,
+      "total_return_net": 0.231849,
+      "max_drawdown": 0.149561,
+      "avg_turnover": 0.005718,
+      "deterministic": true
+    },
+    {
+      "factor": "ob_imbalance_momentum_24_72",
+      "n_epochs": 6501,
+      "mean_ic": -0.001264,
+      "ic_std": 0.196151,
+      "ic_tstat": -0.5194,
+      "ic_ir": -0.006442,
+      "ann_sharpe_net": -1.3541,
+      "total_return_net": -0.134595,
+      "max_drawdown": 0.211928,
+      "avg_turnover": 0.063263,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.028234,
+      "ic_std": 0.277592,
+      "ic_tstat": 8.2309,
+      "ic_ir": 0.101709,
+      "ann_sharpe_net": -2.1314,
+      "total_return_net": -0.279517,
+      "max_drawdown": 0.31209,
+      "avg_turnover": 0.056431,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.021749,
+      "ic_std": 0.279967,
+      "ic_tstat": 6.275,
+      "ic_ir": 0.077683,
+      "ann_sharpe_net": 0.0924,
+      "total_return_net": -0.000553,
+      "max_drawdown": 0.123456,
+      "avg_turnover": 0.039953,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_72h",
+      "n_epochs": 6501,
+      "mean_ic": 0.018332,
+      "ic_std": 0.280882,
+      "ic_tstat": 5.2624,
+      "ic_ir": 0.065267,
+      "ann_sharpe_net": -0.8635,
+      "total_return_net": -0.130306,
+      "max_drawdown": 0.214878,
+      "avg_turnover": 0.031201,
+      "deterministic": true
+    },
+    {
+      "factor": "volume_shock",
+      "n_epochs": 6405,
+      "mean_ic": 0.008392,
+      "ic_std": 0.219647,
+      "ic_tstat": 3.0576,
+      "ic_ir": 0.038205,
+      "ann_sharpe_net": -2.3563,
+      "total_return_net": -0.245915,
+      "max_drawdown": 0.263159,
+      "avg_turnover": 0.040693,
+      "deterministic": true
+    }
+  ],
+  "train_fitness": {
+    "window": "train (in-sample)",
+    "n_trials_global": null,
+    "mean_ic": -0.001264,
+    "adjusted_ic": -0.001264,
+    "penalty": 0.0,
+    "ic_tstat": -0.5194,
+    "ann_sharpe_net": -1.3541,
+    "total_return_net": -0.134595,
+    "max_drawdown": 0.211928,
+    "avg_turnover": 0.063263,
+    "n_epochs": 6501
+  },
+  "critique": {
+    "verdict": "reject",
+    "statistical_flaws": [
+      "Mean IC is negative (-0.0013) with t-stat -0.52, far from the required t>2 and directionally opposite to the hypothesis.",
+      "Deflated IC equals raw IC (penalty 0.0) but is still negative, offering no evidence of predictive power after multiple-testing adjustment.",
+      "Average turnover (0.063) is the highest among all baselines, contradicting the stated 'medium' turnover expectation; costs wipe out any weak signal, leading to a net Sharpe of -1.35 and a large drawdown of 21.2%.",
+      "The 15 worst per-epoch ICs are all large negative (around -0.55 to -0.68) with many epochs showing negative net PnL even at zero turnover, indicating the raw signal underperforms directly, before costs."
+    ],
+    "logical_flaws": [
+      "The hypothesis predicts buying pressure momentum leading to positive next-hour returns, but the realized IC is negative, suggesting the signal works in the opposite direction (mean-reversion) or is completely noisy. The stated failure mode of 'mean-reverting markets' appears to dominate the entire sample.",
+      "The factor\u2019s high turnover (6.3% per epoch) suggests the ranking is unstable and whipsaws, inconsistent with the idea of a persistent order-flow trend. The execution lag rationale is not supported.",
+      "Despite identifying high-volatility events as a failure mode, the worst ICs occur across various dates and not exclusively during clear dislocations, indicating a systematic failure rather than event-driven noise."
+    ],
+    "revision_directive": "Test a sign-reversed version (short buying pressure momentum) or investigate if the cross-sectional z-score is distorting the signal. Also consider longer or more stable moving-average windows (e.g., 48 vs 168) to reduce turnover below 0.01 per epoch, matching the turnover of viable baselines like low_vol_168h. If even the sign-flipped IC fails to reach t>2, discard the hypothesis."
+  }
+}
