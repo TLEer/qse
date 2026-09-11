@@ -19,6 +19,7 @@ compile_commands.json
 # --- Runtime state & telemetry (top-level reports/*.json evidence is tracked) ---
 /reports/logs/
 /reports/live/
+/reports/live_*/          # per-year replays: same telemetry, the evidence is reports/*.json
 /evaluation/trials.json
 
 # --- Python ---

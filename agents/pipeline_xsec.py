@@ -6,12 +6,20 @@ months); the engine scores them with the per-epoch Spearman rank IC and a
 dollar-neutral top/bottom-20% long/short book with hysteresis, daily
 rebalancing, and taker costs on traded deltas.
 
-Fitness is the deflated mean rank IC (evaluation/fitness.py::evaluate_xsec)
-with the same holdout-ledger discipline as the single-asset loop: train looks
-are free, every holdout look increments trials.json and raises the bar.
+Fitness is the DEFLATED SHARPE (evaluation/fitness.py::evaluate_xsec) with the
+same holdout-ledger discipline as the single-asset loop: train looks are free,
+every holdout look increments trials.json and raises the bar.
 
 Hard promotion gate (all on the holdout window):
-    mean rank IC > 0.03  AND  deflated IC > 0  AND  net Sharpe > 0
+    net Sharpe > 1.0  AND  deflated Sharpe > 0
+i.e. the book must clear the best Sharpe N zero-skill trials would have
+reached by chance. The gate is deliberately NOT on the rank IC: a factor can
+earn a cash flow rather than predict returns — funding carry collects the
+perp funding transfer and has an IC of ~0 by construction (the promoted
+baseline scores an IC t-stat of 0.06) — so an IC threshold rejects exactly
+the factors that make money that way. IC is still computed and reported as a
+diagnostic (the Critic reasons about it, and the worst-epoch ICs catch
+IC-driven blowups).
 
 python -m agents.pipeline_xsec [max_iterations]
 """
@@ -44,7 +52,16 @@ HOLDOUT = ("2026-04", "2026-06")
 # Portfolio config passed to every run — matches reports/xsec_baselines.json.
 PORTFOLIO_ARGS = ["--rebalance-every", "24", "--q-out", "0.35"]
 
-MIN_HOLDOUT_IC = 0.03
+MIN_HOLDOUT_SHARPE = 1.0     # annualized net Sharpe on the holdout window
+# Deflated-Sharpe confidence the holdout must clear. The textbook value is
+# 0.95, but the holdout is a quarter, and at T ~= 2000 return observations
+# one standard error of the Sharpe is ~2.1 annualized: 0.95 would demand a
+# Sharpe around 8 after a hundred trials and promote nothing. 0.75 costs only
+# ~+1.4 Sharpe over a coin flip, still rejects everything under ~4.7 at
+# N=10, and keeps the promoted baseline admissible. Raise this as the
+# evaluation window lengthens — at 12 months one SE is ~1.0, where 0.95
+# costs ~2.6 Sharpe instead of ~8.
+MIN_HOLDOUT_DSR = 0.75
 
 CFG = load_provider()
 client = make_client(CFG)
@@ -57,11 +74,13 @@ the engine longs the top 20% and shorts the bottom 20% (with a hysteresis
 band and daily rebalancing). Market direction is therefore irrelevant —
 only the cross-sectional ORDERING of next-hour returns is scored.
 
-Scoring: per-epoch Spearman rank IC between your scores and forward
-open-to-open returns, deflated by ln(total holdout trials). The hard gate is
-out-of-sample mean rank IC > 0.03 with positive net Sharpe after ~8bps per
-side on traded weight deltas. High-turnover signals die on costs even with
-good IC: prefer lookbacks of 12-168 bars over bar-to-bar noise.
+Scoring: the deflated net Sharpe of the dollar-neutral book, after ~8bps per
+side on traded weight deltas. The hard gate is a holdout net Sharpe above 1.0
+that also clears the best N zero-skill trials would have reached by chance.
+Rank IC is reported as a diagnostic but is NOT the gate — a spread that earns
+a cash flow (funding, basis) rather than predicting the next hour's return
+has an IC near zero and can still be promoted. High-turnover signals die on
+costs: prefer lookbacks of 12-168 bars over bar-to-bar noise.
 
 Per symbol per closed 1h bar you have: open, high, low, close, volume,
 quote_volume, taker_buy_ratio (taker buys / volume — order-flow imbalance),
@@ -102,16 +121,24 @@ identifier, and must not collide with a baseline factor name."""
 CRITIC_XSEC_SYSTEM = """\
 You are the Critic. You receive the hypothesis, the train-window backtest of
 the new factor AND all baselines (same grid, costs, portfolio construction),
-the deflated-IC fitness dict, and the factor's 15 worst per-epoch ICs.
+the fitness dict (deflated Sharpe, with rank IC alongside as a diagnostic),
+and the factor's 15 worst per-epoch ICs.
 Find reasons the result is NOT real:
-- IC t-stat < 2 in-sample, or IC driven by a handful of epochs (compare the
-  worst-IC list against the mean — a real ranking edge is broad and shallow).
+- Net Sharpe below the deflated bar, or a Sharpe carried by a handful of
+  epochs: the reported skew and kurtosis of the epoch returns say how
+  fat-tailed it is — a Sharpe built on a few tail events is not repeatable.
 - IC positive but net Sharpe negative: turnover is eating the edge; check
   realized avg_turnover against the hypothesis's expected_turnover claim.
+- IC ~0 with a positive Sharpe is legitimate — that is what a cash-flow
+  spread (funding, basis) looks like, and it must not be rejected for
+  lacking IC. Do check instead that the P&L is consistent with the stated
+  cash-flow rationale rather than an unacknowledged price bet.
 - The formula is an epsilon-perturbation of a baseline (trial grinding).
 - PnL inconsistent with the stated rationale or failure modes.
-The hard promotion gate on holdout is mean rank IC > 0.03, deflated IC > 0,
-net Sharpe > 0. Promote on train only if the factor plausibly clears it.
+The hard promotion gate on holdout is net Sharpe > 1.0 AND deflated Sharpe
+above the best N zero-skill trials would have reached (the DSR and the bar
+are in the fitness dict). Rank IC is a diagnostic, not a criterion. Promote
+on train only if the factor plausibly clears that gate.
 A false promote is worse than a false reject."""
 
 
@@ -202,7 +229,8 @@ def critique(hyp: XsecFactorHypothesis, batch: list[dict], fit: dict,
         f"Hypothesis:\n{hyp.model_dump_json(indent=2)}\n\n"
         f"Train backtest (new factor + baselines, same grid/costs):\n"
         f"{json.dumps(batch, indent=2)}\n\n"
-        f"Fitness (deflated rank IC):\n{json.dumps(fit, indent=2)}\n\n"
+        f"Fitness (deflated Sharpe; rank IC is diagnostic):\n"
+        f"{json.dumps(fit, indent=2)}\n\n"
         f"Worst per-epoch ICs of the new factor:\n{json.dumps(worst_ics, indent=2)}"
     )
     return ask(Critique, CRITIC_XSEC_SYSTEM, user)
@@ -305,9 +333,10 @@ def run_xsec_loop(max_iterations: int = 3) -> None:
         # Stage 1 — iterate freely against the train window.
         batch, fit, worst = score(hyp.name, TRAIN, "train", in_sample=True)
         crit = critique(hyp, batch, fit, worst)
-        print(f"[{i}] train: IC {fit['mean_ic']:.4f} (t {fit['ic_tstat']:.2f}), "
-              f"net Sharpe {fit['ann_sharpe_net']:.2f}, turnover "
-              f"{fit['avg_turnover']:.4f}; verdict {crit.verdict}", file=sys.stderr)
+        print(f"[{i}] train: net Sharpe {fit['ann_sharpe_net']:.2f} "
+              f"({fit['n_bets']} bets, turnover {fit['avg_turnover']:.4f}), "
+              f"IC {fit['mean_ic']:.4f} (t {fit['ic_tstat']:.2f}, diagnostic); "
+              f"verdict {crit.verdict}", file=sys.stderr)
 
         record = {
             "provider": CFG.name, "model": CFG.model, "mode": "xsec",
@@ -321,13 +350,13 @@ def run_xsec_loop(max_iterations: int = 3) -> None:
             h_batch, h_fit, _ = score(hyp.name, HOLDOUT, "holdout", in_sample=False)
             record["holdout_batch"] = h_batch
             record["holdout_fitness"] = h_fit
-            promoted = (h_fit["mean_ic"] > MIN_HOLDOUT_IC
-                        and h_fit["adjusted_ic"] > 0.0
-                        and h_fit["ann_sharpe_net"] > 0.0)
-            print(f"[{i}] holdout: IC {h_fit['mean_ic']:.4f} "
-                  f"(deflated {h_fit['adjusted_ic']:.4f}, trial "
-                  f"#{h_fit['n_trials_global']}), net Sharpe "
-                  f"{h_fit['ann_sharpe_net']:.2f} -> "
+            promoted = (h_fit["ann_sharpe_net"] > MIN_HOLDOUT_SHARPE
+                        and h_fit["dsr"] >= MIN_HOLDOUT_DSR)
+            print(f"[{i}] holdout: net Sharpe {h_fit['ann_sharpe_net']:.2f} "
+                  f"(bar {h_fit['sharpe_threshold_ann']:.2f}, DSR "
+                  f"{h_fit['dsr']:.3f} vs {MIN_HOLDOUT_DSR}, trial "
+                  f"#{h_fit['n_trials_global']}; IC {h_fit['mean_ic']:.4f} "
+                  f"diagnostic) -> "
                   f"{'PROMOTED' if promoted else 'failed holdout'}", file=sys.stderr)
             if promoted:
                 (REPORTS / f"xsec_{hyp.name}_iter{i}.json").write_text(
@@ -336,14 +365,18 @@ def run_xsec_loop(max_iterations: int = 3) -> None:
             crit = Critique(
                 verdict="revise",
                 statistical_flaws=[
-                    f"holdout mean IC {h_fit['mean_ic']:.4f} / deflated "
-                    f"{h_fit['adjusted_ic']:.4f} / net Sharpe "
-                    f"{h_fit['ann_sharpe_net']:.2f} missed the gate "
-                    f"(need IC > {MIN_HOLDOUT_IC}, deflated > 0, Sharpe > 0)"],
+                    f"holdout net Sharpe {h_fit['ann_sharpe_net']:.2f} missed the "
+                    f"deflated-Sharpe gate (bar {h_fit['sharpe_threshold_ann']:.2f} "
+                    f"at trial #{h_fit['n_trials_global']}, DSR "
+                    f"{h_fit['dsr']:.3f} < {MIN_HOLDOUT_DSR}, need Sharpe > "
+                    f"{MIN_HOLDOUT_SHARPE}); rank IC {h_fit['mean_ic']:.4f} (t "
+                    f"{h_fit['ic_tstat']:.2f}) is diagnostic only"],
                 logical_flaws=[],
-                revision_directive="The ranking edge did not survive the held-out "
-                                   "quarter. Slow the signal down or find a "
-                                   "structurally different cross-sectional spread.",
+                revision_directive="The book did not clear the deflated-Sharpe bar "
+                                   "on the held-out quarter. Slow the signal down, "
+                                   "or look for a spread whose P&L is a cash flow "
+                                   "(funding, basis) rather than a decaying price "
+                                   "forecast.",
             )
 
         (REPORTS / f"xsec_{hyp.name}_iter{i}.json").write_text(

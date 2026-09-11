@@ -169,6 +169,7 @@ XsecResult run_xsec(const MarketGrid& g, IXsecFactor& factor,
         to_sum += e.turnover;
         r_sum += e.pnl_net;
         r_sum2 += e.pnl_net * e.pnl_net;
+        if (e.turnover > 0.0) ++res.n_bets;   // a rebalance that actually traded
     }
     res.n_epochs = ic_n;
     if (ic_n >= 2) {
@@ -189,6 +190,26 @@ XsecResult run_xsec(const MarketGrid& g, IXsecFactor& factor,
             365.0 * 24.0 * 3600.0 * 1e9 / static_cast<double>(g.epoch_ns);
         if (sd_r > 0.0)
             res.ann_sharpe_net = mean_r / sd_r * std::sqrt(epochs_per_year);
+
+        // Moments of the same net-return series, for the deflated Sharpe:
+        // T is the number of return draws the Sharpe was estimated from
+        // (hourly epochs — a held book draws a fresh return every epoch, so
+        // held positions are extra draws, not repeated ones), and the skew
+        // and kurtosis thin the Sharpe's standard error.
+        res.n_returns = res.epochs.size();
+        if (sd_r > 0.0) {
+            res.sharpe_epoch = mean_r / sd_r;
+            double m3 = 0.0, m4 = 0.0;
+            for (const auto& e : res.epochs) {
+                const double d = e.pnl_net - mean_r;
+                m3 += d * d * d;
+                m4 += d * d * d * d;
+            }
+            m3 /= m;
+            m4 /= m;
+            res.skew = m3 / (sd_r * sd_r * sd_r);
+            res.kurtosis = m4 / (sd_r * sd_r * sd_r * sd_r);
+        }
     }
     res.total_return_net = res.equity.back() - 1.0;
     double peak = res.equity.front();

@@ -299,20 +299,34 @@ void write_logs(const std::string& dir, const std::string& name, const XsecResul
     }
 }
 
-void write_report(const char* path, const std::vector<XRun>& runs) {
+// `rebalance_every` is recorded for context, and `n_bets` is the number of
+// rebalances that actually moved the book (turnover > 0) — measured, not
+// inferred: the hysteresis band means many rebalances re-form nothing. The
+// per-epoch Sharpe and the skew/kurtosis of the same net-return series are
+// what downstream fitness needs to deflate the Sharpe rather than the IC
+// (an IC gate cannot promote a factor that earns a cash flow, e.g. funding
+// carry, whose IC is ~0 by construction).
+void write_report(const char* path, const std::vector<XRun>& runs,
+                  std::size_t rebalance_every) {
     FILE* f = std::fopen(path, "w");
     if (!f) return;
     std::fprintf(f, "[\n");
     for (std::size_t i = 0; i < runs.size(); ++i) {
         const auto& r = runs[i];
         std::fprintf(f,
-            "  {\"factor\": \"%s\", \"n_epochs\": %zu, \"mean_ic\": %.6f, "
+            "  {\"factor\": \"%s\", \"n_epochs\": %zu, "
+            "\"rebalance_every\": %zu, \"n_bets\": %zu, \"n_returns\": %zu, "
+            "\"mean_ic\": %.6f, "
             "\"ic_std\": %.6f, \"ic_tstat\": %.4f, \"ic_ir\": %.6f, "
-            "\"ann_sharpe_net\": %.4f, \"total_return_net\": %.6f, "
+            "\"ann_sharpe_net\": %.4f, \"sharpe_epoch\": %.8f, "
+            "\"skew\": %.4f, \"kurtosis\": %.4f, "
+            "\"total_return_net\": %.6f, "
             "\"max_drawdown\": %.6f, \"avg_turnover\": %.6f, "
             "\"deterministic\": %s}%s\n",
-            r.name.c_str(), r.res.n_epochs, r.res.mean_ic, r.res.ic_std,
-            r.res.ic_tstat, r.res.ic_ir, r.res.ann_sharpe_net,
+            r.name.c_str(), r.res.n_epochs, rebalance_every, r.res.n_bets,
+            r.res.n_returns, r.res.mean_ic,
+            r.res.ic_std, r.res.ic_tstat, r.res.ic_ir, r.res.ann_sharpe_net,
+            r.res.sharpe_epoch, r.res.skew, r.res.kurtosis,
             r.res.total_return_net, r.res.max_drawdown, r.res.avg_turnover,
             r.deterministic ? "true" : "false",
             i + 1 < runs.size() ? "," : "");
@@ -377,9 +391,9 @@ int main(int argc, char** argv) {
     std::vector<XRun> runs;
     bool all_ok = true;
 
-    std::printf("%-22s %7s %8s %7s %9s %8s %8s %9s  %s\n",
-                "factor", "epochs", "meanIC", "IC_t", "netShrp", "ret", "maxDD",
-                "turnover", "digest");
+    std::printf("%-22s %7s %6s %8s %7s %9s %8s %8s %9s  %s\n",
+                "factor", "epochs", "bets", "meanIC", "IC_t", "netShrp", "ret",
+                "maxDD", "turnover", "digest");
 
     for (const auto& [name, make] : registry) {
         if (!only_factor.empty() && name != only_factor) continue;
@@ -392,8 +406,8 @@ int main(int argc, char** argv) {
 
         if (!log_dir.empty()) write_logs(log_dir, name, a);
 
-        std::printf("%-22s %7zu %8.4f %7.2f %9.2f %7.2f%% %7.2f%% %9.4f  %016llx %s\n",
-                    name.c_str(), a.n_epochs, a.mean_ic, a.ic_tstat,
+        std::printf("%-22s %7zu %6zu %8.4f %7.2f %9.2f %7.2f%% %7.2f%% %9.4f  %016llx %s\n",
+                    name.c_str(), a.n_epochs, a.n_bets, a.mean_ic, a.ic_tstat,
                     a.ann_sharpe_net, a.total_return_net * 100.0,
                     a.max_drawdown * 100.0, a.avg_turnover,
                     static_cast<unsigned long long>(a.digest),
@@ -401,7 +415,7 @@ int main(int argc, char** argv) {
         runs.push_back({name, std::move(a), det});
     }
 
-    if (report_path) write_report(report_path, runs);
+    if (report_path) write_report(report_path, runs, cfg.rebalance_every);
 
     if (!all_ok) {
         std::fprintf(stderr, "\nDETERMINISM VIOLATION in at least one factor\n");

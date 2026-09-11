@@ -1,0 +1,215 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "mode": "xsec",
+  "hypothesis": {
+    "name": "order_flow_funding_divergence_24h",
+    "economic_rationale": "In perpetuals, funding rate proxies the crowding of leveraged directional positions, while taker_buy_ratio captures realized aggressive buying. A name with high taker buy ratio but relatively low funding is experiencing active spot/less-leveraged accumulation without yet being crowded in perp funding; cross-sectionally it should outperform over the next hours as leveraged players chase. Conversely, high funding with low taker buy pressure indicates crowded longs with weak fresh demand and should underperform.",
+    "formula": "xs_zscore( ts_mean(taker_buy_ratio, 24) ) - xs_zscore( ts_mean(funding, 24) )",
+    "lookback_bars": 24,
+    "expected_turnover": "medium",
+    "predicted_failure_modes": [
+      "Sharp market-wide deleveraging where high-taker-buy names are sold indiscriminately despite low prior funding",
+      "Low-liquidity choppy sessions where taker_buy_ratio is noisy and funding is stale between prints",
+      "Regime changes in funding rate dynamics or exchange fee incentives that temporarily break the crowding signal"
+    ]
+  },
+  "train_batch": [
+    {
+      "factor": "funding_carry_168h",
+      "n_epochs": 6405,
+      "mean_ic": -0.001065,
+      "ic_std": 0.210425,
+      "ic_tstat": -0.4052,
+      "ic_ir": -0.005063,
+      "ann_sharpe_net": 1.7495,
+      "total_return_net": 0.182363,
+      "max_drawdown": 0.099649,
+      "avg_turnover": 0.008333,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_16h",
+      "n_epochs": 6557,
+      "mean_ic": 0.002965,
+      "ic_std": 0.209377,
+      "ic_tstat": 1.1467,
+      "ic_ir": 0.014161,
+      "ann_sharpe_net": 1.2895,
+      "total_return_net": 0.146758,
+      "max_drawdown": 0.080902,
+      "avg_turnover": 0.033324,
+      "deterministic": true
+    },
+    {
+      "factor": "funding_carry_72h",
+      "n_epochs": 6501,
+      "mean_ic": 3.2e-05,
+      "ic_std": 0.210265,
+      "ic_tstat": 0.0124,
+      "ic_ir": 0.000154,
+      "ann_sharpe_net": 1.6883,
+      "total_return_net": 0.187659,
+      "max_drawdown": 0.102623,
+      "avg_turnover": 0.015074,
+      "deterministic": true
+    },
+    {
+      "factor": "low_vol_168h",
+      "n_epochs": 6404,
+      "mean_ic": 0.030675,
+      "ic_std": 0.38073,
+      "ic_tstat": 6.4474,
+      "ic_ir": 0.080568,
+      "ann_sharpe_net": 1.2808,
+      "total_return_net": 0.231849,
+      "max_drawdown": 0.149561,
+      "avg_turnover": 0.005718,
+      "deterministic": true
+    },
+    {
+      "factor": "order_flow_funding_divergence_24h",
+      "n_epochs": 6549,
+      "mean_ic": -0.002321,
+      "ic_std": 0.1981,
+      "ic_tstat": -0.9481,
+      "ic_ir": -0.011715,
+      "ann_sharpe_net": 0.7809,
+      "total_return_net": 0.077413,
+      "max_drawdown": 0.106718,
+      "avg_turnover": 0.044045,
+      "deterministic": true
+    },
+    {
+      "factor": "return_deceleration_168h",
+      "n_epochs": 6405,
+      "mean_ic": 0.002684,
+      "ic_std": 0.282948,
+      "ic_tstat": 0.7593,
+      "ic_ir": 0.009487,
+      "ann_sharpe_net": 1.0657,
+      "total_return_net": 0.143773,
+      "max_drawdown": 0.086258,
+      "avg_turnover": 0.019594,
+      "deterministic": true
+    },
+    {
+      "factor": "return_deceleration_24h",
+      "n_epochs": 6549,
+      "mean_ic": -0.021137,
+      "ic_std": 0.27861,
+      "ic_tstat": -6.1396,
+      "ic_ir": -0.075866,
+      "ann_sharpe_net": -1.5017,
+      "total_return_net": -0.216462,
+      "max_drawdown": 0.262713,
+      "avg_turnover": 0.056306,
+      "deterministic": true
+    },
+    {
+      "factor": "return_deceleration_72h",
+      "n_epochs": 6501,
+      "mean_ic": -0.010283,
+      "ic_std": 0.282514,
+      "ic_tstat": -2.9347,
+      "ic_ir": -0.036397,
+      "ann_sharpe_net": -1.9434,
+      "total_return_net": -0.25474,
+      "max_drawdown": 0.286592,
+      "avg_turnover": 0.032346,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_24h",
+      "n_epochs": 6549,
+      "mean_ic": 0.028234,
+      "ic_std": 0.277592,
+      "ic_tstat": 8.2309,
+      "ic_ir": 0.101709,
+      "ann_sharpe_net": -2.1314,
+      "total_return_net": -0.279517,
+      "max_drawdown": 0.31209,
+      "avg_turnover": 0.056431,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_48h",
+      "n_epochs": 6525,
+      "mean_ic": 0.021749,
+      "ic_std": 0.279967,
+      "ic_tstat": 6.275,
+      "ic_ir": 0.077683,
+      "ann_sharpe_net": 0.0924,
+      "total_return_net": -0.000553,
+      "max_drawdown": 0.123456,
+      "avg_turnover": 0.039953,
+      "deterministic": true
+    },
+    {
+      "factor": "reversal_72h",
+      "n_epochs": 6501,
+      "mean_ic": 0.018332,
+      "ic_std": 0.280882,
+      "ic_tstat": 5.2624,
+      "ic_ir": 0.065267,
+      "ann_sharpe_net": -0.8635,
+      "total_return_net": -0.130306,
+      "max_drawdown": 0.214878,
+      "avg_turnover": 0.031201,
+      "deterministic": true
+    },
+    {
+      "factor": "vol_adjusted_taker_imbalance_72h",
+      "n_epochs": 6501,
+      "mean_ic": -0.014148,
+      "ic_std": 0.244135,
+      "ic_tstat": -4.6724,
+      "ic_ir": -0.05795,
+      "ann_sharpe_net": -1.6061,
+      "total_return_net": -0.182816,
+      "max_drawdown": 0.271942,
+      "avg_turnover": 0.000443,
+      "deterministic": true
+    },
+    {
+      "factor": "volume_shock",
+      "n_epochs": 6405,
+      "mean_ic": 0.008392,
+      "ic_std": 0.219647,
+      "ic_tstat": 3.0576,
+      "ic_ir": 0.038205,
+      "ann_sharpe_net": -2.3563,
+      "total_return_net": -0.245915,
+      "max_drawdown": 0.263159,
+      "avg_turnover": 0.040693,
+      "deterministic": true
+    }
+  ],
+  "train_fitness": {
+    "window": "train (in-sample)",
+    "n_trials_global": null,
+    "mean_ic": -0.002321,
+    "adjusted_ic": -0.002321,
+    "penalty": 0.0,
+    "ic_tstat": -0.9481,
+    "ann_sharpe_net": 0.7809,
+    "total_return_net": 0.077413,
+    "max_drawdown": 0.106718,
+    "avg_turnover": 0.044045,
+    "n_epochs": 6549
+  },
+  "critique": {
+    "verdict": "reject",
+    "statistical_flaws": [
+      "In-sample mean rank IC is negative (-0.002321) with IC t-stat -0.9481, so the signal is not statistically distinguishable from zero and has the wrong sign.",
+      "Deflated IC is also -0.002321, failing the deflated IC > 0 requirement.",
+      "Net Sharpe is positive at 0.7809 despite the raw rank IC being negative, meaning the PnL is not aligned with the factor's cross-sectional ranking edge.",
+      "The 15 worst epoch ICs are all large negative (-0.53 to -0.60), indicating severe negative tail risk rather than a broad, shallow positive edge."
+    ],
+    "logical_flaws": [
+      "The economic rationale predicts that high taker-buy ratio relative to funding should outperform, i.e. positive rank IC, but the observed in-sample mean IC is negative, contradicting the stated mechanism.",
+      "Positive net Sharpe with negative mean IC suggests the strategy's positive PnL may come from portfolio construction or other uncompensated exposures, not from the proposed order-flow/funding divergence signal."
+    ],
+    "revision_directive": "Reject as submitted. The factor fails the promotion gate already in-sample: mean rank IC is -0.002321 with t-stat -0.9481 and deflated IC is -0.002321, so it cannot plausibly clear holdout mean rank IC > 0.03 and deflated IC > 0. Before any revision, verify whether the sign is inverted by testing the negative of the formula, and reconcile why ann_sharpe_net is positive while the rank IC is negative. The worst-epoch IC list should be examined against the predicted failure modes to determine whether the large negative ICs are concentrated in the stated deleveraging/choppy regimes."
+  }
+}

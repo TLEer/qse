@@ -56,6 +56,18 @@ struct XsecResult {
     double max_drawdown{};
     double avg_turnover{};
     std::uint64_t digest{};       // FNV-1a over equity + IC bit patterns
+
+    // Strategy-side evidence for the deflated-Sharpe gate. `n_bets` counts
+    // the rebalances that actually moved the book (turnover > 0) — recorded,
+    // never inferred from rebalance_every, because the hysteresis band means
+    // a rebalance often re-forms nothing. `n_returns` is T of the Sharpe and
+    // `skew`/`kurtosis` (non-excess; normal == 3) its higher moments, all
+    // over the same per-epoch net-return series the Sharpe is estimated from.
+    std::size_t n_bets{};
+    std::size_t n_returns{};
+    double sharpe_epoch{};        // per-epoch mean / sd
+    double skew{};
+    double kurtosis{};
 };
 
 // FNV-1a fold of one double's bit pattern into the determinism digest.
